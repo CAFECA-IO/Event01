@@ -23,6 +23,15 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
   const shareText = `我在分院帽的財務挑戰中被分配到了${myHouse.title}！快來試試看吧！`;
   const shareUrl = `${DOMAIN}/s/${resultId}`; // Info: (20250205 - Julian) 導入分享頁面
 
+  const bgColor =
+    resultId === "gryffindor"
+      ? "bg-[#ffc4c6]"
+      : resultId === "hufflepuff"
+      ? "bg-[#fff9c4]"
+      : resultId === "ravenclaw"
+      ? "bg-[#c4f1ff]"
+      : "bg-[#c4ffc4]";
+
   const socialMediaList = Object.entries(ShareSettings).map(([key, value]) => {
     // Info: (20250205 - Julian) Facebook 不再支援 text 參數，所以不用填入
     const isShareText = key === "FACEBOOK" ? "" : `&text=${shareText}`;
@@ -104,7 +113,7 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
         <h1 className="font-bold text-[2em] pt-[32px]">分院帽的財務挑戰</h1>
 
         <div
-          className={`bg-[${myHouse.color}] mx-auto gap-[10px] w-full flex flex-col items-center box-border overflow-hidden max-w-[550px] my-[10px] p-[10px] border-2 border-[#333] rounded-[10px]`}
+          className={`${bgColor} mx-auto gap-[10px] w-full flex flex-col items-center box-border overflow-hidden max-w-[550px] my-[10px] p-[10px] border-2 border-[#333] rounded-[10px]`}
         >
           <h2 className="font-bold text-[1.17em] py-[10px]">{myHouse.title}</h2>
           <p className="text-center">{myHouse.text}</p>
