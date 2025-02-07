@@ -1,7 +1,8 @@
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 
+// Info: (20250205 - Julian) 定義遊戲進度
 const STEPS = {
   starter: "starter",
   rule: "rule",
@@ -9,6 +10,41 @@ const STEPS = {
   result: "result",
 };
 
+// Info: (20250205 - Julian) 定義問題
+const questions = [
+  {
+    question: "如果宴會預算不足，你會怎麼做？",
+    image: "/Q1.jpg",
+    options: [
+      { text: "取消部分菜單", house: "hufflepuff" },
+      { text: "徵收額外費用", house: "slytherin" },
+      { text: "自己掏腰包", house: "gryffindor" },
+      { text: "寫申請向魔法部借款", house: "ravenclaw" },
+    ],
+  },
+  {
+    image: "/Q2.jpg",
+    question: "分院帽需要維修費，你覺得應該怎麼籌資？",
+    options: [
+      { text: "與所有學生均分費用", house: "hufflepuff" },
+      { text: "舉辦募款活動，吸引捐助", house: "slytherin" },
+      { text: "主動捐款並號召其他人參與", house: "gryffindor" },
+      { text: "提出提案，申請校董會撥款", house: "ravenclaw" },
+    ],
+  },
+  {
+    image: "/Q3.jpg",
+    question: "魔法書籍價格上漲，導致教具預算超支，你會？",
+    options: [
+      { text: "建議學生租借而非購買", house: "hufflepuff" },
+      { text: "提高新生入學費用", house: "slytherin" },
+      { text: "自己籌錢補貼新生", house: "gryffindor" },
+      { text: "找廠商協商批量優惠", house: "ravenclaw" },
+    ],
+  },
+];
+
+// Info: (20250205 - Julian) 按鈕樣式
 const Button = ({ text, onClick }: { text: string; onClick: () => void }) => (
   <button
     type="button"
@@ -29,39 +65,7 @@ export default function Home() {
     slytherin: 0,
   });
 
-  const questions = [
-    {
-      question: "如果宴會預算不足，你會怎麼做？",
-      image: "/Q1.jpg",
-      options: [
-        { text: "取消部分菜單", house: "hufflepuff" },
-        { text: "徵收額外費用", house: "slytherin" },
-        { text: "自己掏腰包", house: "gryffindor" },
-        { text: "寫申請向魔法部借款", house: "ravenclaw" },
-      ],
-    },
-    {
-      image: "/Q2.jpg",
-      question: "分院帽需要維修費，你覺得應該怎麼籌資？",
-      options: [
-        { text: "與所有學生均分費用", house: "hufflepuff" },
-        { text: "舉辦募款活動，吸引捐助", house: "slytherin" },
-        { text: "主動捐款並號召其他人參與", house: "gryffindor" },
-        { text: "提出提案，申請校董會撥款", house: "ravenclaw" },
-      ],
-    },
-    {
-      image: "/Q3.jpg",
-      question: "魔法書籍價格上漲，導致教具預算超支，你會？",
-      options: [
-        { text: "建議學生租借而非購買", house: "hufflepuff" },
-        { text: "提高新生入學費用", house: "slytherin" },
-        { text: "自己籌錢補貼新生", house: "gryffindor" },
-        { text: "找廠商協商批量優惠", house: "ravenclaw" },
-      ],
-    },
-  ];
-
+  // Info: (20250205 - Julian) 根據進度顯示對應的圖片
   const currentImg =
     currentStep === STEPS.starter
       ? "/starter.jpg"
@@ -75,6 +79,7 @@ export default function Home() {
   const startGame = () => setCurrentStep(STEPS.questions);
 
   useEffect(() => {
+    // Info: (20250205 - Julian) 根據得分來排序，並導向結果頁
     if (currentStep === STEPS.result) {
       const sortedHouses = Object.keys(scores).sort(
         (a, b) => scores[b] - scores[a]
@@ -84,6 +89,54 @@ export default function Home() {
     }
   }, [currentStep]);
 
+  const questionText = currentStep === STEPS.questions && (
+    <p className="text-[1.17em] font-bold my-[12px]">
+      {questions[currentQuestion].question}
+    </p>
+  );
+
+  const mainPicture = currentStep !== STEPS.result && (
+    <Image src={currentImg} alt="圖片無法載入" width={500} height={500} />
+  );
+
+  // Info: (20250205 - Julian) 完成所有問題後，顯示載入中的圖片
+  const loadingImg = currentStep === STEPS.result && (
+    <div className="flex flex-col gap-2 items-center justify-center h-[400px]">
+      <Image src="/loading.svg" alt="loading" width={50} height={50} />
+      <p>正在計算結果...</p>
+    </div>
+  );
+
+  // Info: (20250205 - Julian) 選項按鈕邏輯
+  const answerOptions = currentStep === STEPS.questions && (
+    <div className="flex flex-wrap gap-[10px] justify-center">
+      {questions[currentQuestion].options.map((option, index) => {
+        const onClick = () => {
+          // Info: (20250205 - Julian) 加分至對應的分院
+          const house = option.house.toLowerCase();
+          setScores({ ...scores, [house]: scores[house] + 1 });
+
+          // Info: (20250205 - Julian) 進入到下一題或顯示結果
+          if (currentQuestion < questions.length - 1) {
+            setCurrentQuestion(currentQuestion + 1);
+          } else {
+            setCurrentStep(STEPS.result);
+          }
+        };
+
+        return <Button key={index} text={option.text} onClick={onClick} />;
+      })}
+    </div>
+  );
+
+  // Info: (20250205 - Julian) 開始按鈕有兩種，依進度來決定
+  const startButton =
+    currentStep === STEPS.starter ? (
+      <Button text="開始遊戲" onClick={startStage} />
+    ) : currentStep === STEPS.rule ? (
+      <Button text="進入遊戲" onClick={startGame} />
+    ) : null;
+
   return (
     <div className={`bg-[#f7f7f7] min-h-screen font-['Arial', sans-serif]`}>
       <Head>
@@ -92,6 +145,12 @@ export default function Home() {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Info: (20250205 - Julian) Safari */}
+        <meta name="application-name" content="分院帽的財務挑戰" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" />
+        <meta name="apple-mobile-web-app-title" content="分院帽的財務挑戰" />
       </Head>
 
       {/* Info: (20250204 - Julian) Background Music */}
@@ -106,59 +165,20 @@ export default function Home() {
         <p>「戴上我吧，我會看穿你的財務靈魂，將你分配到最適合你的分院！」</p>
 
         <div className="mx-auto gap-[10px] w-full flex flex-col items-center box-border overflow-hidden max-w-[600px] bg-[#fff] my-[10px] p-[10px] border border-[#ddd] rounded-[10px]">
-          {currentStep === STEPS.questions && (
-            <p className="text-[1.17em] font-bold my-[12px]">
-              {questions[currentQuestion].question}
-            </p>
-          )}
+          {/* Info: (20250205 - Julian) 文字版問題 */}
+          {questionText}
 
-          {currentStep !== STEPS.result && (
-            <Image
-              src={currentImg}
-              alt="圖片無法載入"
-              width={500}
-              height={500}
-            />
-          )}
+          {/* Info: (20250205 - Julian) 主要圖片 */}
+          {mainPicture}
 
-          {currentStep === STEPS.result && (
-            <div className="flex flex-col gap-2 items-center justify-center h-[400px]">
-              <Image src="/loading.svg" alt="loading" width={50} height={50} />
-              <p>正在計算結果...</p>
-            </div>
-          )}
+          {/* Info: (20250205 - Julian) 載入中 */}
+          {loadingImg}
 
-          {currentStep === STEPS.starter && (
-            <Button text="開始遊戲" onClick={startStage} />
-          )}
+          {/* Info: (20250205 - Julian) 開始按鈕 */}
+          {startButton}
 
-          {currentStep === STEPS.rule && (
-            <Button text="進入遊戲" onClick={startGame} />
-          )}
-
-          {/* Info: (20250205 - Julian) 問題圖卡 */}
-          {currentStep === STEPS.questions && (
-            <div className="flex flex-wrap gap-[10px] justify-center">
-              {questions[currentQuestion].options.map((option, index) => {
-                const onClick = () => {
-                  // Info: (20250205 - Julian) 加分至對應的分院
-                  const house = option.house.toLowerCase();
-                  setScores({ ...scores, [house]: scores[house] + 1 });
-
-                  // Info: (20250205 - Julian) 進入到下一題或顯示結果
-                  if (currentQuestion < questions.length - 1) {
-                    setCurrentQuestion(currentQuestion + 1);
-                  } else {
-                    setCurrentStep(STEPS.result);
-                  }
-                };
-
-                return (
-                  <Button key={index} text={option.text} onClick={onClick} />
-                );
-              })}
-            </div>
-          )}
+          {/* Info: (20250205 - Julian) 選項按鈕 */}
+          {answerOptions}
         </div>
       </main>
     </div>

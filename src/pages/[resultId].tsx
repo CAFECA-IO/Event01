@@ -2,34 +2,14 @@ import React from "react";
 import Head from "next/head";
 import Image from "next/image";
 import { GetServerSideProps } from "next";
-
-type House = "gryffindor" | "hufflepuff" | "ravenclaw" | "slytherin";
-const results = {
-  hufflepuff: {
-    title: "赫夫帕夫（務實型）",
-    text: "恭喜！你被分配到赫夫帕夫財務分院！你擁有一顆溫暖的心，總是願意為集體利益做出妥協與務實的選擇，但記得偶爾也要為自己的利益考慮一下！",
-    image: "/hufflepuff.jpg",
-  },
-  slytherin: {
-    title: "史萊哲林（策略型）",
-    text: "太棒了！你是史萊哲林財務分院的代表！你擅長制定策略，總能在關鍵時刻找到創造收入的方法。但別忘了，適當考慮團隊的需求，也是一種智慧。",
-    image: "/slytherin.jpg",
-  },
-  gryffindor: {
-    title: "葛萊芬多（冒險型）",
-    text: "哇！你是葛萊芬多財務分院的勇敢代表！你的決策充滿激情與正義感，總是願意為他人挺身而出。只要稍微多一些冷靜和計劃，你將更加無敵！",
-    image: "/gryffindor.jpg",
-  },
-  ravenclaw: {
-    title: "雷文克勞（理性型）",
-    text: "棒極了！你被分配到雷文克勞財務分院！你的決策冷靜且邏輯清晰，總能找到最佳解決方案。記得偶爾放下數據，聽聽內心的聲音，也許會有意外的收穫！",
-    image: "/ravenclaw.jpg",
-  },
-};
+import { ShareSettings } from "@/constants/social_media";
+import { DOMAIN } from "@/constants/config";
+import { testResults, House } from "@/constants/house";
 
 const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
-  const myHouse = results[resultId as House];
+  const myHouse = testResults[resultId as House];
 
+  // Info: (20250205 - Julian) 如果沒有對應結果，顯示 404 頁面
   if (!myHouse) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -40,6 +20,9 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
     );
   }
 
+  const shareText = `我在分院帽的財務挑戰中被分配到了${myHouse.title}！快來試試看吧！`;
+  const shareUrl = `${DOMAIN}/s/${resultId}`; // Info: (20250205 - Julian) 導入分享頁面
+
   const bgColor =
     resultId === "gryffindor"
       ? "bg-[#ffc4c6]"
@@ -49,6 +32,36 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
       ? "bg-[#c4f1ff]"
       : "bg-[#c4ffc4]";
 
+  const socialMediaList = Object.entries(ShareSettings).map(([key, value]) => {
+    // Info: (20250205 - Julian) Facebook 不再支援 text 參數，所以不用填入
+    const isShareText = key === "FACEBOOK" ? "" : `&text=${shareText}`;
+
+    const onClick = () => {
+      if (shareUrl === "") throw new Error("Share url is empty");
+
+      window.open(
+        `${value.url}${encodeURIComponent(shareUrl)}${isShareText}`,
+        `${value.type}`,
+        `${value.size}`
+      );
+    };
+
+    return (
+      <button
+        type="button"
+        className="p-[8px] hover:invert-[80%] hover:cursor-pointer"
+        onClick={onClick}
+      >
+        <Image
+          src={`/${key.toLowerCase()}.png`}
+          alt={key}
+          width={20}
+          height={20}
+        />
+      </button>
+    );
+  });
+
   return (
     <div className={`bg-[#f7f7f7] min-h-screen font-['Arial', sans-serif]`}>
       <Head>
@@ -57,10 +70,47 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Info: (20250205 - Julian) Safari */}
+        <meta name="application-name" content="分院帽的財務挑戰" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" />
+        <meta name="apple-mobile-web-app-title" content="分院帽的財務挑戰" />
+
+        {/* Info: (20250205 - Julian) Open Graph Tag */}
+        <meta property="og:title" content="分院帽的財務挑戰" />
+        <meta name="og:type" content="website" />
+        {/* Info: (20250205 - Julian) 導入首頁 */}
+        <meta name="og:url" content={DOMAIN} />
+        <meta name="og:image" content={`${DOMAIN}${myHouse.image}`} />
+        <meta name="og:image:width" content="1200" />
+        <meta name="og:image:height" content="630" />
+        <meta name="og:image:alt" content={myHouse.title} />
+        <meta property="og:description" content="分院帽的財務挑戰" />
+        <meta name="og:site_name" content="分院帽的財務挑戰" />
+        <meta name="og:locale" content="zh_TW" />
+
+        {/* Info: (20250205 - Julian) Twitter */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:site" content="@isunfa" />
+        <meta name="twitter:creator" content="@isunfa" />
+        {/* Info: (20250205 - Julian) 導入首頁 */}
+        <meta name="twitter:url" content={DOMAIN} />
+        <meta name="twitter:title" content="分院帽的財務挑戰" />
+        <meta name="twitter:description" content="分院帽的財務挑戰" />
+        <meta name="twitter:image" content={`${DOMAIN}${myHouse.image}`} />
+        <meta name="twitter:image:alt" content={myHouse.title} />
       </Head>
 
+      {/* Info: (20250205 - Julian) Background Music */}
+      <audio id="background-music" autoPlay loop>
+        <source src="BackgroudMusic.m4a" type="audio/mpeg" />
+        <source src="BackgroudMusic.mp3" type="audio/mpeg" />
+        您的瀏覽器不支援音訊播放。
+      </audio>
+
       <main className="flex flex-1 flex-col items-center">
-        <h1 className="font-bold text-[2em] py-[32px]">分院帽的財務挑戰</h1>
+        <h1 className="font-bold text-[2em] pt-[32px]">分院帽的財務挑戰</h1>
 
         <div
           className={`${bgColor} mx-auto gap-[10px] w-full flex flex-col items-center box-border overflow-hidden max-w-[550px] my-[10px] p-[10px] border-2 border-[#333] rounded-[10px]`}
@@ -76,8 +126,9 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
           />
         </div>
 
-        <div className="flex font-semibold py-[20px]">
+        <div className="flex font-semibold items-center mt-[8px]">
           <p>分享到社群：</p>
+          {socialMediaList}
         </div>
       </main>
     </div>
