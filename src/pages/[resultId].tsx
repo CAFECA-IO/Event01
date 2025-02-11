@@ -48,6 +48,7 @@ const ResultPage: React.FC<{ resultId: string }> = ({ resultId }) => {
 
     return (
       <button
+        key={key}
         type="button"
         className="p-[8px] hover:invert-[80%] hover:cursor-pointer"
         onClick={onClick}
