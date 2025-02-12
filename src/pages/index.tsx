@@ -138,7 +138,9 @@ export default function Home() {
     ) : null;
 
   return (
-    <div className={`bg-[#f7f7f7] min-h-screen font-['Arial', sans-serif]`}>
+    <div
+      className={`bg-[#f7f7f7] text-black min-h-screen font-['Arial', sans-serif]`}
+    >
       <Head>
         <title>分院帽的財務挑戰</title>
         <meta name="description" content="分院帽的財務挑戰" />
