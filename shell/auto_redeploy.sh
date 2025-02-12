@@ -4,7 +4,7 @@
 APP_NAME="EVENT01"
 
 # 設定工作目錄
-cd /workspace/EVENT01/
+cd /workspace/Event01/
 
 # 檢查是否有更新
 git fetch
